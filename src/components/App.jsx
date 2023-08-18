@@ -1,8 +1,10 @@
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-
 import { nanoid } from 'nanoid'
+
 import { Component } from 'react';
+import { getImages } from './API';
+import { Loader } from './Loader/Loader';
 
 
 
@@ -12,8 +14,21 @@ export class App extends Component {
     query: '',
     images: [],
     page: 1,
-    // loading: false,
+    loading: false,
   }
+
+async componentDidMount(){
+this.setState({loading: true});
+try {
+  const imgGallery = await getImages();
+  console.log(imgGallery);
+} catch (error){
+  toast.error("Oops! Something is wrong... Try again later");
+}finally {
+  this.setState({loading: false})
+}
+
+}  
 
 changeQuery = newQuery => {
 this.setState({
@@ -49,6 +64,7 @@ handleLoadMore = () => {
 
 
 render () {
+  const isLoading = this.state.loading
   return (
     <div>
       <form onSubmit={evt => {
@@ -66,7 +82,10 @@ render () {
         <button type="submit">Submit</button>
       </form>
       <div>Gallery</div>
-      <button onClick={this.handleLoadMore}>Load more</button>
+       
+        <button onClick={this.handleLoadMore}>Load more</button>
+        <Loader isLoading={isLoading}/>
+      
       <ToastContainer position="top-center" autoClose={2000}/>
     </div>
   )
