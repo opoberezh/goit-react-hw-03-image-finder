@@ -4,6 +4,7 @@ import { nanoid } from 'nanoid'
 
 import { Component } from 'react';
 import { getImages } from './API';
+import { SearchBar } from './SearchBar/SearchBar';
 import { Loader } from './Loader/Loader';
 
 
@@ -17,13 +18,19 @@ export class App extends Component {
     loading: false,
   }
 
-async componentDidMount(){
-this.setState({loading: true});
-try {
-  const imgGallery = await getImages();
-  console.log(imgGallery);
+  async componentDidMount(){
+  this.setState({loading: true});
+  try {
+    const {query, page} = this.state;
+   
+  const images = await getImages(query, page);
+  this.setState({
+  images,
+})
 } catch (error){
-  toast.error("Oops! Something is wrong... Try again later");
+  console.log(error);
+  toast.error("Something went wrong!", {
+    icon: "🤯"});
 }finally {
   this.setState({loading: false})
 }
@@ -50,8 +57,25 @@ componentDidUpdate(pervProps, prevState){
   if(prevQuery !== newQuery || prevPage !== nextPage){
 console.log(`HTTP request ${newQuery} and page ${nextPage}`)
   }
-
 }
+
+ 
+handleSubmit = evt => {
+  evt.preventDefault();
+  const newQuery = evt.target.elements.query.value.trim();
+  if (newQuery === '') {
+    toast(" Oops! Search query is empty!", {
+       icon: "🦄"});
+    return;
+  }else{
+    toast.success("We found some images for you!", {
+      icon: "🚀"});
+   
+  }
+  this.changeQuery(newQuery);
+  evt.target.reset();
+}
+
 
 handleLoadMore = () => {
   if (this.state.query.trim() !== ''){
@@ -64,29 +88,18 @@ handleLoadMore = () => {
 
 
 render () {
-  const isLoading = this.state.loading
+   
   return (
     <div>
-      <form onSubmit={evt => {
-        evt.preventDefault();
-        const newQuery = evt.target.elements.query.value.trim();
-        if (newQuery === '') {
-          toast("🦄 Oops! Search query is empty!");
-          return;
-        }
-        this.changeQuery(newQuery);
-        evt.target.reset();
-      }}
-      >
-        <input type="text" name="query"/>
-        <button type="submit">Submit</button>
-      </form>
+      <SearchBar onSubmit={this.handleSubmit}/> 
+      {this.state.loading ? <Loader/> : null}
       <div>Gallery</div>
-       
-        <button onClick={this.handleLoadMore}>Load more</button>
-        <Loader isLoading={isLoading}/>
+
       
-      <ToastContainer position="top-center" autoClose={2000}/>
+        <button onClick={this.handleLoadMore}>Load more</button>
+       
+      
+      <ToastContainer position="top-right" autoClose={2000}/>
     </div>
   )
 };

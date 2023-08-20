@@ -1,9 +1,8 @@
 import {RotatingLines
 } from  'react-loader-spinner'
 
-export const Loader = ({isLoading}) => {
-    if(isLoading){
-         return (
+export const Loader = () => {
+        return (
         <div>
             <RotatingLines
             strokeColor="grey"
@@ -15,6 +14,6 @@ export const Loader = ({isLoading}) => {
         </div>
        
     );
-    } 
-   return null;
+  
+  
 };
