@@ -6,48 +6,79 @@ import { Component } from 'react';
 import { getImages } from './API';
 import { SearchBar } from './SearchBar/SearchBar';
 import { Loader } from './Loader/Loader';
-
+import { ImageGallery } from './ImageGallery/ImageGallery';
+import { LoadMoreButton} from './Button/Button';
+import { Modal } from './Modal/Modal';
 
 
 
 export class App extends Component {
   state ={
     query: '',
-    images: [],
-    page: 1,
     loading: false,
-  }
+    page: 1,
+    images: [],
+    hasMoreImages: true,
+    totalPages: 0,
+    error: null,
+  };
 
-  async componentDidMount(){
-  this.setState({loading: true});
+//   async componentDidMount(){
+//   this.setState({loading: true}); 
+
+//   const {query, page} = this.state;
+//   const separatedQuery = query.split('/')[1];
+  
+//   try {
+//   const newImages = await getImages({query: separatedQuery, page});
+//   this.setState(prevState => ({
+//   images: [...prevState.images, ...newImages],
+//   hasMoreImages: newImages.length === 12,
+//   totalPages: Math.ceil(newImages.totalHits / 12),
+// }))
+// } catch (error){
+//   console.log(error);
+//   toast.error("Something went wrong!", {
+//     icon: "🤯"});
+// }finally {
+//   this.setState({loading: false})
+// }
+
+// }  
+
+getImages = async () => {
+  const { query, page } = this.state;
+  const separatedQuery = query.split('/')[1];
+
   try {
-    const {query, page} = this.state;
-   
-  const images = await getImages(query, page);
-  this.setState({
-  images,
-})
-} catch (error){
-  console.log(error);
-  toast.error("Something went wrong!", {
-    icon: "🤯"});
-}finally {
-  this.setState({loading: false})
-}
-
-}  
+    const newImages = await getImages({query: separatedQuery}, page);
+    this.setState((prevState) => ({
+      images: [...prevState.images, ...newImages],
+      hasMoreImages: newImages.length >= 12,
+      totalPages: Math.ceil(newImages.totalHits / 12),
+    }));
+  } catch (error) {
+    console.log(error);
+    toast.error('Something went wrong!', {
+      icon: '🤯',
+    });
+  } finally {
+    this.setState({ loading: false });
+  }
+};
 
 changeQuery = newQuery => {
 this.setState({
   query:`${nanoid()}/${newQuery}`,
   images: [],
   page: 1,
-  
+  hasMoreImages: true,
+  totalPages: 0,
 })
 }
 
 
-componentDidUpdate(pervProps, prevState){
+componentDidUpdate(prevProps, prevState){
   const prevQuery = prevState.query;
   const newQuery =  this.state.query;
 
@@ -55,8 +86,9 @@ componentDidUpdate(pervProps, prevState){
   const nextPage = this.state.page;
 
   if(prevQuery !== newQuery || prevPage !== nextPage){
-console.log(`HTTP request ${newQuery} and page ${nextPage}`)
-  }
+// console.log(`HTTP request ${newQuery} and page ${nextPage}`)
+this.getImages(this.state.query, this.state.page);
+}
 }
 
  
@@ -83,25 +115,34 @@ handleLoadMore = () => {
   }else {
     toast("🦄 Oops! Search query is empty!");
   }
- 
-};
+}
 
 
 render () {
-   
+  const { images, error, loading, page, totalPages } = this.state;
   return (
-    <div>
-      <SearchBar onSubmit={this.handleSubmit}/> 
-      {this.state.loading ? <Loader/> : null}
-      <div>Gallery</div>
-
-      
-        <button onClick={this.handleLoadMore}>Load more</button>
-       
-      
-      <ToastContainer position="top-right" autoClose={2000}/>
-    </div>
+    <>
+      <div>
+        <SearchBar onSubmit={this.handleSubmit} />
+        {loading && <Loader />}
+        {error && !loading && (
+          toast.error("Something went wrong!", {
+            icon: "😲"})
+        )}
+        {totalPages === 0 && !images && (
+           toast.error("Try again. Photos not found!", {
+            icon: "🤯"})
+        )}
+        <ImageGallery images={images} />
+        {images.length > 0 && !loading && page <= totalPages && (
+       <LoadMoreButton onClick={this.handleLoadMore} />
+        )}
+        <Modal/>
+      </div>
+    <ToastContainer position="top-right" autoClose={2000}/>
+    </>
+    
   )
-};
+}
 }
   
