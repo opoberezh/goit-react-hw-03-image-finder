@@ -6,5 +6,6 @@ export const LoadMoreButton = ({ onClick }) => {
     <Button type="button" onClick={onClick}>
       Load More
     </Button>
+    
   );
 };

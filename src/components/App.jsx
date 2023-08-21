@@ -18,7 +18,7 @@ export class App extends Component {
     loading: false,
     page: 1,
     images: [],
-    hasMoreImages: true,
+   
     totalPages: 0,
     error: null,
   };
@@ -48,14 +48,16 @@ export class App extends Component {
 
 getImages = async () => {
   const { query, page } = this.state;
+  // const perPage = 12;
   const separatedQuery = query.split('/')[1];
 
   try {
     const newImages = await getImages({query: separatedQuery}, page);
     this.setState((prevState) => ({
       images: [...prevState.images, ...newImages],
-      hasMoreImages: newImages.length >= 12,
-      totalPages: Math.ceil(newImages.totalHits / 12),
+      hasMoreImages: newImages.length >= 20,
+      totalPages: prevState.totalPages + 1,
+      
     }));
   } catch (error) {
     console.log(error);
@@ -72,7 +74,7 @@ this.setState({
   query:`${nanoid()}/${newQuery}`,
   images: [],
   page: 1,
-  hasMoreImages: true,
+
   totalPages: 0,
 })
 }
@@ -111,15 +113,22 @@ handleSubmit = evt => {
 
 handleLoadMore = () => {
   if (this.state.query.trim() !== ''){
-     this.setState(prevState =>({page: prevState.page +1}))
-  }else {
+    this.setState(prevState => ({ page: prevState.page + 1 }), () => {
+      this.getImages(); 
+    });
+  } else {
     toast("🦄 Oops! Search query is empty!");
   }
+  
 }
 
 
 render () {
   const { images, error, loading, page, totalPages } = this.state;
+//   console.log("images:", images);
+// console.log("loading:", loading);
+// console.log("page:", page);
+// console.log("totalPages:", totalPages);
   return (
     <>
       <div>
