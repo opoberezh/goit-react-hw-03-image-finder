@@ -18,7 +18,7 @@ export class App extends Component {
     loading: false,
     page: 1,
     images: [],
-   
+    hasMoreImages: true,
     totalPages: 0,
     error: null,
   };
@@ -46,18 +46,23 @@ export class App extends Component {
 
 // }  
 
-getImages = async () => {
-  const { query, page } = this.state;
-  // const perPage = 12;
-  const separatedQuery = query.split('/')[1];
 
+
+fetchImages = async () => {
+  const { query, page } = this.state;
+  const separatedQuery = query.split('/')[1];
+  
   try {
-    const newImages = await getImages({query: separatedQuery}, page);
+    const newImages = await getImages({ query: separatedQuery , page});
+    const imagesWithIds = newImages.map(image => ({
+      ...image,
+      id: nanoid(), // Генеруємо унікальний ідентифікатор для кожного зображення
+    }));
+
     this.setState((prevState) => ({
-      images: [...prevState.images, ...newImages],
+      images: page === 1 ? imagesWithIds : [...prevState.images, ...imagesWithIds],
       hasMoreImages: newImages.length >= 20,
       totalPages: prevState.totalPages + 1,
-      
     }));
   } catch (error) {
     console.log(error);
@@ -69,12 +74,13 @@ getImages = async () => {
   }
 };
 
+
 changeQuery = newQuery => {
 this.setState({
   query:`${nanoid()}/${newQuery}`,
   images: [],
   page: 1,
-
+  hasMoreImages: true,
   totalPages: 0,
 })
 }
@@ -89,7 +95,7 @@ componentDidUpdate(prevProps, prevState){
 
   if(prevQuery !== newQuery || prevPage !== nextPage){
 // console.log(`HTTP request ${newQuery} and page ${nextPage}`)
-this.getImages(this.state.query, this.state.page);
+this.fetchImages()
 }
 }
 
@@ -114,7 +120,7 @@ handleSubmit = evt => {
 handleLoadMore = () => {
   if (this.state.query.trim() !== ''){
     this.setState(prevState => ({ page: prevState.page + 1 }), () => {
-      this.getImages(); 
+      this.fetchImages();
     });
   } else {
     toast("🦄 Oops! Search query is empty!");
@@ -125,10 +131,7 @@ handleLoadMore = () => {
 
 render () {
   const { images, error, loading, page, totalPages } = this.state;
-//   console.log("images:", images);
-// console.log("loading:", loading);
-// console.log("page:", page);
-// console.log("totalPages:", totalPages);
+
   return (
     <>
       <div>
