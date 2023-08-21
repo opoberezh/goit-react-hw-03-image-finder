@@ -51,7 +51,7 @@ export class App extends Component {
 fetchImages = async () => {
   const { query, page } = this.state;
   const separatedQuery = query.split('/')[1];
-  
+  this.setState({ loading: true });
   try {
     const newImages = await getImages({ query: separatedQuery , page});
     const imagesWithIds = newImages.map(image => ({
@@ -82,6 +82,7 @@ this.setState({
   page: 1,
   hasMoreImages: true,
   totalPages: 0,
+  loading: true,
 })
 }
 
