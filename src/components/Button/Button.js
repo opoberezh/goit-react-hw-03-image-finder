@@ -1,9 +1,10 @@
 import React from 'react';
+import { Button } from './Button.styled';
 
 export const LoadMoreButton = ({ onClick }) => {
   return (
-    <button className="Button" onClick={onClick}>
+    <Button type="button" onClick={onClick}>
       Load More
-    </button>
+    </Button>
   );
 };
