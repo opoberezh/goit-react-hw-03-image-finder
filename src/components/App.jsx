@@ -28,8 +28,9 @@ fetchImages = async () => {
   const { query, page } = this.state;
   const separatedQuery = query.split('/')[1];
 
-  this.setState({ loading: true });
+ 
   try {
+    this.setState({ loading: true });
     const {hits, totalHits} = await getImages({ query: separatedQuery , page});
     this.setState(prevState => ({
       images: [...prevState.images, ...hits],
