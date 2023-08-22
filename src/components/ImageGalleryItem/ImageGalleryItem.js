@@ -16,9 +16,7 @@ export class ImageGalleryItem extends Component {
 
   render() {
     const { isModalOpen } = this.state;
-    const {
-      image: { webformatURL, largeImageURL, tags },
-    } = this.props;
+    const { webformatURL, tags, largeImageURL } = this.props;
 
     return (
       <>

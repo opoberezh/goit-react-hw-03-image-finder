@@ -3,7 +3,7 @@ import 'react-toastify/dist/ReactToastify.css';
 import { nanoid } from 'nanoid'
 
 import { Component } from 'react';
-import { getImages } from './API';
+import { getImages } from '../API/API';
 import { SearchBar } from './SearchBar/SearchBar';
 import { Loader } from './Loader/Loader';
 import { ImageGallery } from './ImageGallery/ImageGallery';
@@ -21,6 +21,7 @@ export class App extends Component {
     hasMoreImages: true,
     totalPages: 0,
     error: null,
+    isLastPage: false,
   };
 
 //   async componentDidMount(){
@@ -51,19 +52,17 @@ export class App extends Component {
 fetchImages = async () => {
   const { query, page } = this.state;
   const separatedQuery = query.split('/')[1];
+
   this.setState({ loading: true });
   try {
-    const newImages = await getImages({ query: separatedQuery , page});
-    const imagesWithIds = newImages.map(image => ({
-      ...image,
-      id: nanoid(), // Генеруємо унікальний ідентифікатор для кожного зображення
+    const {hits, totalHits} = await getImages({ query: separatedQuery , page});
+    this.setState(prevState => ({
+      images: [...prevState.images, ...hits],
+      isLastPage:
+      prevState.images.length + hits.length >= totalHits,
+    error: null,
     }));
 
-    this.setState((prevState) => ({
-      images: page === 1 ? imagesWithIds : [...prevState.images, ...imagesWithIds],
-      hasMoreImages: newImages.length >= 20,
-      totalPages: prevState.totalPages + 1,
-    }));
   } catch (error) {
     console.log(error);
     toast.error('Something went wrong!', {
@@ -82,9 +81,10 @@ this.setState({
   page: 1,
   hasMoreImages: true,
   totalPages: 0,
-  loading: true,
+  loading: false,
+  isLastPage: false,
 })
-}
+};
 
 
 componentDidUpdate(prevProps, prevState){
@@ -98,64 +98,48 @@ componentDidUpdate(prevProps, prevState){
 // console.log(`HTTP request ${newQuery} and page ${nextPage}`)
 this.fetchImages()
 }
-}
-
- 
-handleSubmit = evt => {
-  evt.preventDefault();
-  const newQuery = evt.target.elements.query.value.trim();
-  if (newQuery === '') {
-    toast(" Oops! Search query is empty!", {
-       icon: "🦄"});
-    return;
-  }else{
-    toast.success("We found some images for you!", {
-      icon: "🚀"});
-   
-  }
-  this.changeQuery(newQuery);
-  evt.target.reset();
-}
+};
 
 
 handleLoadMore = () => {
   if (this.state.query.trim() !== ''){
-    this.setState(prevState => ({ page: prevState.page + 1 }), () => {
-      this.fetchImages();
-    });
+    this.setState(prevState => ({ page: prevState.page + 1 }))
   } else {
     toast("🦄 Oops! Search query is empty!");
   }
   
-}
+};
 
 
-render () {
-  const { images, error, loading, page, totalPages } = this.state;
+  render() {
+    const { images, error, loading, isLastPage, totalPages } = this.state;
+  
+    return (
+      <>
+        <div>
+          <SearchBar onSubmit={this.changeQuery} />
+          {loading && <Loader />}
+          {error && !loading && (
+            toast.error("Something went wrong!", {
+              icon: "😲"
+            })
+          )}
+          {totalPages === 0 && !images && (
+            toast.error("Try again. Photos not found!", {
+              icon: "🤯"
+            })
+          )}
+          <ImageGallery images={this.state.images} />
+          {images.length > 0 && !loading && !isLastPage && (
+            <LoadMoreButton onClick={this.handleLoadMore} />
+          )}
+          <Modal />
+        </div>
+        <ToastContainer position="top-right" autoClose={2000} />
+      </>
+    );
+  }
+};
+ 
 
-  return (
-    <>
-      <div>
-        <SearchBar onSubmit={this.handleSubmit} />
-        {loading && <Loader />}
-        {error && !loading && (
-          toast.error("Something went wrong!", {
-            icon: "😲"})
-        )}
-        {totalPages === 0 && !images && (
-           toast.error("Try again. Photos not found!", {
-            icon: "🤯"})
-        )}
-        <ImageGallery images={images} />
-        {images.length > 0 && !loading && page <= totalPages && (
-       <LoadMoreButton onClick={this.handleLoadMore} />
-        )}
-        <Modal/>
-      </div>
-    <ToastContainer position="top-right" autoClose={2000}/>
-    </>
-    
-  )
-}
-}
   
