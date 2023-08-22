@@ -18,34 +18,9 @@ export class App extends Component {
     loading: false,
     page: 1,
     images: [],
-    hasMoreImages: true,
-    totalPages: 0,
     error: null,
     isLastPage: false,
   };
-
-//   async componentDidMount(){
-//   this.setState({loading: true}); 
-
-//   const {query, page} = this.state;
-//   const separatedQuery = query.split('/')[1];
-  
-//   try {
-//   const newImages = await getImages({query: separatedQuery, page});
-//   this.setState(prevState => ({
-//   images: [...prevState.images, ...newImages],
-//   hasMoreImages: newImages.length === 12,
-//   totalPages: Math.ceil(newImages.totalHits / 12),
-// }))
-// } catch (error){
-//   console.log(error);
-//   toast.error("Something went wrong!", {
-//     icon: "🤯"});
-// }finally {
-//   this.setState({loading: false})
-// }
-
-// }  
 
 
 
@@ -79,8 +54,6 @@ this.setState({
   query:`${nanoid()}/${newQuery}`,
   images: [],
   page: 1,
-  hasMoreImages: true,
-  totalPages: 0,
   loading: false,
   isLastPage: false,
 })
@@ -95,8 +68,7 @@ componentDidUpdate(prevProps, prevState){
   const nextPage = this.state.page;
 
   if(prevQuery !== newQuery || prevPage !== nextPage){
-// console.log(`HTTP request ${newQuery} and page ${nextPage}`)
-this.fetchImages()
+  this.fetchImages()
 }
 };
 
@@ -112,7 +84,7 @@ handleLoadMore = () => {
 
 
   render() {
-    const { images, error, loading, isLastPage, totalPages } = this.state;
+    const { images, error, loading, isLastPage } = this.state;
   
     return (
       <>
@@ -122,11 +94,6 @@ handleLoadMore = () => {
           {error && !loading && (
             toast.error("Something went wrong!", {
               icon: "😲"
-            })
-          )}
-          {totalPages === 0 && !images && (
-            toast.error("Try again. Photos not found!", {
-              icon: "🤯"
             })
           )}
           <ImageGallery images={this.state.images} />

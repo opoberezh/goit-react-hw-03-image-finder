@@ -16,7 +16,6 @@ export async function getImages({ query, page }) {
   });
   try {
     const response = await axios.get(`${API_URL}?${params}`);
-    console.log(response.data);
     return response.data;
   } catch (error) {
     console.error(error);
